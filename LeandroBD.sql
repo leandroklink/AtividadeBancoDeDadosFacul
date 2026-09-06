@@ -151,5 +151,71 @@ INSERT INTO projeto(id_projeto, id_professor, id_recurso, titulo, descricao, dat
 select * from projeto;
 
 
+/* 1. Ajuste/Complemento da inserção de Professores */
+/* Garante a presença do professor com ID 5 citado no material */
+INSERT INTO professor (id_professor, nome_professor, especialidade) VALUES 
+(5, 'Patrícia Gomes', 'Computação')
+ON DUPLICATE KEY UPDATE nome_professor = VALUES(nome_professor);
+
+/* 2. Inserção de Projetos que faltam (ID 3) */
+INSERT INTO projeto (id_projeto, id_professor, id_recurso, titulo, descricao, data_inicio, data_fim) VALUES
+(3, 3, 3, 'Laboratório Química', 'Reações com papel indicador', '2025-03-01', '2025-08-10')
+ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+
+/* 3. Inserção de Atividades */
+INSERT INTO atividade (id_atividade, id_projeto, nome_atividade, data_inicio, data_fim) VALUES
+(1, 1, 'Coleta de Dados', '2026-06-15', '2026-07-15'),
+(2, 2, 'Experimento 1', '2026-05-10', '2026-08-10'),
+(3, 3, 'Teste de Reações', '2026-05-20', '2026-08-20'),
+(4, 4, 'Aula Prática', '2026-04-10', '2026-09-10'),
+(5, 5, 'Montagem de Ambiente', '2026-05-20', '2026-10-20');
+
+/* 4. Inserção de Alunos Voluntários */
+INSERT INTO aluno_voluntario (id_aluno, nome_aluno, curso) VALUES
+(1, 'Beatriz Ramos', 'Biologia'),
+(2, 'Eduardo Costa', 'Física'),
+(3, 'Fernanda Melo', 'Química'),
+(4, 'Lucas Rocha', 'Matemática'),
+(5, 'Rafaela Dias', 'Computação');
+
+/* 5. Inserção do relacionamento Atividade-Aluno */
+INSERT INTO atividade_aluno (id_atividade, id_aluno) VALUES
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5);
+
+/* 6. Criação da Tabela Orientador e Relacionamento com Atividade */
+CREATE TABLE orientador (
+    id_orientador INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    nome_orientador VARCHAR(60) NOT NULL,
+    area VARCHAR(30) NOT NULL,
+    PRIMARY KEY (id_orientador)
+);
+
+/* Inserção de dados dos Orientadores */
+INSERT INTO orientador (id_orientador, nome_orientador, area) VALUES
+(1, 'Ricardo Almeida', 'Engenharia'),
+(2, 'Juliana Martins', 'Robótica'),
+(3, 'Fernando Oliveira', 'Estatística'),
+(4, 'Camila Rodrigues', 'Educação'),
+(5, 'Rafael Mendes', 'Inteligência Artificial'),
+(6, 'Luciana Ferreira', 'Astronomia'),
+(7, 'Gustavo Pereira', 'Tecnologia');
+
+/* Adicionando a chave estrangeira do Orientador na tabela Atividade */
+ALTER TABLE atividade ADD id_orientador INT UNSIGNED NULL;
+ALTER TABLE atividade ADD CONSTRAINT fk_atividade_orientador 
+    FOREIGN KEY (id_orientador) REFERENCES orientador (id_orientador);
+
+/* Atualização das Atividades com seus respectivos Orientadores */
+UPDATE atividade SET id_orientador = 5 WHERE id_atividade = 1; -- Rafael Mendes -> Coleta de Dados
+UPDATE atividade SET id_orientador = 2 WHERE id_atividade = 2; -- Juliana Martins -> Experimento 1
+UPDATE atividade SET id_orientador = 7 WHERE id_atividade = 3; -- Gustavo Pereira -> Teste de Reações
+UPDATE atividade SET id_orientador = 1 WHERE id_atividade = 4; -- Ricardo Almeida -> Aula Prática
+UPDATE atividade SET id_orientador = 4 WHERE id_atividade = 5; -- Camila Rodrigues -> Montagem de Ambiente
+
+
 
 
