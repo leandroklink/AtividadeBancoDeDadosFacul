@@ -156,11 +156,13 @@ select * from projeto;
 INSERT INTO professor (id_professor, nome_professor, especialidade) VALUES 
 (5, 'Patrícia Gomes', 'Computação')
 ON DUPLICATE KEY UPDATE nome_professor = VALUES(nome_professor);
+SELECT * FROM professor;
 
 /* 2. Inserção de Projetos que faltam (ID 3) */
 INSERT INTO projeto (id_projeto, id_professor, id_recurso, titulo, descricao, data_inicio, data_fim) VALUES
 (3, 3, 3, 'Laboratório Química', 'Reações com papel indicador', '2025-03-01', '2025-08-10')
 ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+SELECT * FROM projeto;
 
 /* 3. Inserção de Atividades */
 INSERT INTO atividade (id_atividade, id_projeto, nome_atividade, data_inicio, data_fim) VALUES
@@ -169,6 +171,7 @@ INSERT INTO atividade (id_atividade, id_projeto, nome_atividade, data_inicio, da
 (3, 3, 'Teste de Reações', '2026-05-20', '2026-08-20'),
 (4, 4, 'Aula Prática', '2026-04-10', '2026-09-10'),
 (5, 5, 'Montagem de Ambiente', '2026-05-20', '2026-10-20');
+SELECT * FROM atividade;
 
 /* 4. Inserção de Alunos Voluntários */
 INSERT INTO aluno_voluntario (id_aluno, nome_aluno, curso) VALUES
@@ -216,6 +219,56 @@ UPDATE atividade SET id_orientador = 7 WHERE id_atividade = 3; -- Gustavo Pereir
 UPDATE atividade SET id_orientador = 1 WHERE id_atividade = 4; -- Ricardo Almeida -> Aula Prática
 UPDATE atividade SET id_orientador = 4 WHERE id_atividade = 5; -- Camila Rodrigues -> Montagem de Ambiente
 
+-- atividades dia 08/09/2026
+-- A) Consulta de atividades com data de término a partir de uma data específica:
+-- Esta consulta retorna todas as atividades que têm uma data de término posterior a 20 de abril de 2025.
+
+select * from atividade where data_fim > '2025-04-20';
+
+-- B) Retorne a unidade e quantidade em estoque de todos os materiais na tabela
+-- Material, cuja quantidade seja superior a 100.
+
+select unidade, quantidade from material
+where quantidade > 100;
+
+-- C) Consulta para exibir o nome de professores e área de atuação na tabela
+-- Professor, que não são da área de atuação Física.
+
+select nome_professor, especialidade from professor where especialidade <> 'Física';
+
+-- D) Localizar todos os projetos que estão atualmente em andamento. Um projeto é
+-- considerado "em andamento" se a data atual estiver entre sua data de início e de fim.
+
+select * from projeto where current_date() > data_inicio and current_date() < data_fim;
+
+-- E) Listar o nome e a área de atuação de todos os professores que são da área de
+-- 'Biologia' OU 'Química’
+
+select * from professor where especialidade = 'Biologia' or especialidade = 'Quimica';
+
+-- F) Consultar o nome e o tipo de todos os recursos que NÃO são do tipo 'Equipamento’.
+
+select nome, tipo from recurso where tipo <> "Equipamento";
+
+-- G) O projeto 'Computação Móvel' precisa de mais tempo e sua data final
+-- será estendida para 30 de novembro de 2025.
+
+update projeto set data_fim = "2025-11-30" where id_projeto = 5;
+
+-- H) O nome da atividade com id_atividade igual a 2, "Experimento 1", é muito genérico.
+-- É necessário atualizá-lo para "Experimento de Refração da Luz" para refletir melhor o seu propósito
 
 
+update atividade set nome_atividade = "Experimento de Refração de Luz" where id_atividade = 2;
 
+-- I) Listar os orientadores da área de Tecnologia
+
+select * from orientador where area = 'Tecnologia';
+
+-- J) Listar orientadores cujo ID seja maior que 3
+
+select * from orientador where id_orientador > 3;
+
+-- K) Listar orientadores que não são da área de Educação
+
+select * from orientador where area <> "Educacao";
