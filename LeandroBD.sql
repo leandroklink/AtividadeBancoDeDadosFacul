@@ -1,5 +1,14 @@
-CREATE DATABASE gerenciamento_projetos;
+/* ============================================================
+   BANCO DE DADOS: gerenciamento_projetos
+   Script corrigido + exercícios em sala + exercícios extra-classe
+   ============================================================ */
+
+CREATE DATABASE IF NOT EXISTS gerenciamento_projetos;
 USE gerenciamento_projetos;
+
+/* ============================================================
+   1. CRIAÇÃO DAS TABELAS
+   ============================================================ */
 
 CREATE TABLE professor (
     id_professor   INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -11,19 +20,20 @@ CREATE TABLE professor (
 
 CREATE TABLE recurso (
     id_recurso INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    nome VARCHAR(50) NOT NULL,
-    tipo ENUM('equipamento', 'material') NOT NULL,
+    nome       VARCHAR(50) NOT NULL,
+    tipo       ENUM('equipamento', 'material') NOT NULL,
     PRIMARY KEY (id_recurso),
     INDEX idx_tipo_recurso (tipo)
 );
 
+-- CORREÇÃO: removido o INDEX idx_numero_serie, pois o UNIQUE já cria um índice
+-- (ficava um índice duplicado).
 CREATE TABLE equipamento (
     id_equipamento INT UNSIGNED NOT NULL,
     numero_serie   VARCHAR(40) NOT NULL,
     garantia_anos  INT DEFAULT 1,
     PRIMARY KEY (id_equipamento),
     UNIQUE (numero_serie),
-    INDEX idx_numero_serie (numero_serie),
     CHECK (garantia_anos >= 0),
     FOREIGN KEY (id_equipamento) REFERENCES recurso (id_recurso)
 );
@@ -86,189 +96,386 @@ CREATE TABLE atividade_aluno (
 );
 
 
+/* ============================================================
+   2. ALTER TABLE (para 22/08)
+   ============================================================ */
 
+-- a) Adicionar a coluna e-mail na tabela professor (string de tamanho 40).
+-- CORREÇÃO: criada já com VARCHAR(40); não precisa mais do MODIFY ("errei").
+ALTER TABLE professor ADD email VARCHAR(40);
 
-/* a) Adicionar a coluna e-mail na tabela professor do tipo string de tamanho 40 */
-ALTER TABLE professor ADD email varchar(45);
+-- b) Alterar area_atuacao para especialidade, tipo VARCHAR(50).
+-- CORREÇÃO: mantido o DEFAULT 'Tecnologia' (o CHANGE sem ele apagava o padrão).
+ALTER TABLE professor CHANGE area_atuacao especialidade VARCHAR(50) DEFAULT 'Tecnologia';
 
-/*b) Alterar o atributo área de atuação para especialidade da tabela professor mudar o tipo para VARCHAR(50).*/
-ALTER TABLE professor CHANGE  area_atuacao especialidade VARCHAR(50);
+-- c) Alterar numero_serie de VARCHAR(40) para VARCHAR(60) na tabela equipamento.
+-- CORREÇÃO: mantido o NOT NULL (o MODIFY sem ele removia a restrição).
+ALTER TABLE equipamento MODIFY numero_serie VARCHAR(60) NOT NULL;
 
-/*c) Alterar apenas o tipo de dados da coluna numero_serie do tipo string de tamanho (40) para string de tamanho (60) na tabela equipamento.*/
-ALTER TABLE equipamento MODIFY numero_serie VARCHAR(60);
-
-/*d) Excluir o atributo e-mail da tabela professor.*/
+-- d) Excluir o atributo e-mail da tabela professor.
 ALTER TABLE professor DROP email;
 
-/*e) Criar um índice chamado idx_nome_professor na tabela professor para o atributo nome do professor.*/
+-- e) Criar o índice idx_nome_professor para o nome do professor.
 CREATE INDEX idx_nome_professor ON professor (nome_professor);
 
-/*f) Adicionar o atributo status com valor padrão 'Ativo' na tabela professor*/
-ALTER TABLE professor ADD status VARCHAR(15) DEFAULT 'ativo';
+-- f) Adicionar o atributo status com valor padrão 'Ativo' na tabela professor.
+ALTER TABLE professor ADD status VARCHAR(15) DEFAULT 'Ativo';
 
-/*g) Excluir o atributo status da tabela professor*/
+-- g) Excluir o atributo status da tabela professor.
 ALTER TABLE professor DROP status;
 
-/* Atividade dia 01/09 */
-DELETE FROM professor WHERE id_professor = 1;
 
-INSERT INTO professor values
-(1, "Ana", "Biologia"), 
-(2, "Carlos Souza", "Fisica"),
-(3, "Marina Torres", "Quimica"),
-(4,"Patrícia Gomes", "Computação");
+/* ============================================================
+   3. INSERÇÃO DE DADOS
+   (CORREÇÃO: ponto e vírgula em todos os comandos, aspas simples
+    e lista de colunas explícita nos INSERTs)
+   ============================================================ */
 
-select * from professor;
-
-/* Inserção de dados de recursos */
-
-insert INTO recurso (id_recurso, nome, tipo) VALUES (1, "Microscópio", "Equipamento");
-insert INTO recurso (id_recurso, nome, tipo) VALUES (2, "Projetor", "Equipamento");
-insert INTO recurso (id_recurso, nome, tipo) VALUES (3, "Papel A4", "Material");
-insert INTO recurso (id_recurso, nome, tipo) VALUES (4, "Caneta", "Material");
-insert INTO recurso (id_recurso, nome, tipo) VALUES (5, "Notebook", "Equipamento");
-
-select * from recurso;
-
-/* Inserção de dados de equipamentos */
-
-INSERT INTO equipamento(id_equipamento, numero_serie, garantia_anos) values (1, "MIC12345", 2), (2, "PROJ6789", 3), (3, "NOTE98765",1);
-select * from equipamento;
-
-/* Inserção de dados de equipamentos */
-
-INSERT INTO material (id_material, unidade, quantidade) VALUES (1, "Resma", 20), (2, "Unidade", 100);
-select * from  material;
-
-/* Inserção de dados na tabela projeto */
-
-INSERT INTO projeto(id_projeto, id_professor, id_recurso, titulo, descricao, data_inicio, data_fim) VALUES
-(1,1, 1, "Projeto Bioluz", "Estudo sobre fotossíntese", "2026-01-10", "2026-08-10"),
-(2,2, 2, "Física Aplicada", "Reações com papel indicador", "2025-03-01", "2025-08-10"),
-(4,4, 4, "Matemática Visual", "Geometria com recursos", "2025-04-01", "2025-09-01"),
-(5,5, 5, "Computação Móvel", "Uso de notebooks em aulas", "2025-05-15", "2025-10-15");
-
-select * from projeto;
-
-
-/* 1. Ajuste/Complemento da inserção de Professores */
-/* Garante a presença do professor com ID 5 citado no material */
-INSERT INTO professor (id_professor, nome_professor, especialidade) VALUES 
-(5, 'Patrícia Gomes', 'Computação')
-ON DUPLICATE KEY UPDATE nome_professor = VALUES(nome_professor);
+INSERT INTO professor (id_professor, nome_professor, especialidade) VALUES
+(1, 'Ana Lima',       'Biologia'),
+(2, 'Carlos Souza',   'Física'),
+(3, 'Marina Torres',  'Química'),
+(4, 'João Silva',     'Matemática'),
+(5, 'Patrícia Gomes', 'Computação');
 SELECT * FROM professor;
 
-/* 2. Inserção de Projetos que faltam (ID 3) */
+INSERT INTO recurso (id_recurso, nome, tipo) VALUES
+(1, 'Microscópio', 'equipamento'),
+(2, 'Projetor',    'equipamento'),
+(3, 'Papel A4',    'material'),
+(4, 'Caneta',      'material'),
+(5, 'Notebook',    'equipamento');
+SELECT * FROM recurso;
+
+INSERT INTO equipamento (id_equipamento, numero_serie, garantia_anos) VALUES
+(1, 'MIC12345', 2),
+(2, 'PRO67934', 3),
+(5, 'NOTE0937', 1);
+SELECT * FROM equipamento;
+
+-- CORREÇÃO: os materiais eram cadastrados com id 1 e 2 (Microscópio e Projetor,
+-- que são equipamentos). Os materiais são Papel A4 (3) e Caneta (4).
+INSERT INTO material (id_material, unidade, quantidade) VALUES
+(3, 'Resma',   20),
+(4, 'Unidade', 100);
+SELECT * FROM material;
+
+-- CORREÇÃO: datas inválidas '2025-03-0' e '2025-09-0' -> '2025-03-01' e '2025-09-01'.
 INSERT INTO projeto (id_projeto, id_professor, id_recurso, titulo, descricao, data_inicio, data_fim) VALUES
-(3, 3, 3, 'Laboratório Química', 'Reações com papel indicador', '2025-03-01', '2025-08-10')
-ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);
+(1, 1, 1, 'Projeto Bioluz',        'Estudo sobre fotossíntese',   '2026-01-10', '2026-08-10'),
+(2, 2, 2, 'Física Aplicada',       'Experimentos com luz',        '2026-02-01', '2026-09-01'),
+(3, 3, 3, 'Laboratório Química',   'Reações com papel indicador', '2025-03-01', '2025-08-10'),
+(4, 4, 4, 'Matemática Visual',     'Geometria com recursos',      '2025-04-01', '2025-09-01'),
+(5, 5, 5, 'Computação Móvel',      'Uso de notebooks em aulas',   '2025-05-15', '2025-10-15');
 SELECT * FROM projeto;
 
-/* 3. Inserção de Atividades */
 INSERT INTO atividade (id_atividade, id_projeto, nome_atividade, data_inicio, data_fim) VALUES
-(1, 1, 'Coleta de Dados', '2026-06-15', '2026-07-15'),
-(2, 2, 'Experimento 1', '2026-05-10', '2026-08-10'),
-(3, 3, 'Teste de Reações', '2026-05-20', '2026-08-20'),
-(4, 4, 'Aula Prática', '2026-04-10', '2026-09-10'),
-(5, 5, 'Montagem de Ambiente', '2026-05-20', '2026-10-20');
+(1, 1, 'Coleta de Dados',       '2026-06-15', '2026-07-15'),
+(2, 2, 'Experimento 1',         '2026-05-10', '2026-08-10'),
+(3, 3, 'Teste de Reações',      '2026-05-20', '2026-08-20'),
+(4, 4, 'Aula Prática',          '2026-04-10', '2026-09-10'),
+(5, 5, 'Montagem de Ambiente',  '2026-05-20', '2026-10-20');
 SELECT * FROM atividade;
 
-/* 4. Inserção de Alunos Voluntários */
 INSERT INTO aluno_voluntario (id_aluno, nome_aluno, curso) VALUES
 (1, 'Beatriz Ramos', 'Biologia'),
 (2, 'Eduardo Costa', 'Física'),
 (3, 'Fernanda Melo', 'Química'),
-(4, 'Lucas Rocha', 'Matemática'),
-(5, 'Rafaela Dias', 'Computação');
+(4, 'Lucas Rocha',   'Matemática'),
+(5, 'Rafaela Dias',  'Computação');
+SELECT * FROM aluno_voluntario;
 
-/* 5. Inserção do relacionamento Atividade-Aluno */
-INSERT INTO atividade_aluno (id_atividade, id_aluno) VALUES
-(1, 1),
-(2, 2),
-(3, 3),
-(4, 4),
-(5, 5);
 
-/* 6. Criação da Tabela Orientador e Relacionamento com Atividade */
+/* ============================================================
+   4. TABELA ORIENTADOR
+   ============================================================ */
+
+-- CORREÇÃO: havia vírgula sobrando antes do ")" e faltava a chave primária.
 CREATE TABLE orientador (
-    id_orientador INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    nome_orientador VARCHAR(60) NOT NULL,
-    area VARCHAR(30) NOT NULL,
+    id_orientador        INT UNSIGNED NOT NULL,
+    nome_orientador      VARCHAR(40) NOT NULL,
+    atividade_orientador VARCHAR(80) NOT NULL,
     PRIMARY KEY (id_orientador)
 );
 
-/* Inserção de dados dos Orientadores */
-INSERT INTO orientador (id_orientador, nome_orientador, area) VALUES
-(1, 'Ricardo Almeida', 'Engenharia'),
-(2, 'Juliana Martins', 'Robótica'),
+-- CORREÇÃO: havia vírgula no fim do último registro (e faltava o ";").
+INSERT INTO orientador (id_orientador, nome_orientador, atividade_orientador) VALUES
+(1, 'Ricardo Almeida',   'Engenharia'),
+(2, 'Juliana Martins',   'Robótica'),
 (3, 'Fernando Oliveira', 'Estatística'),
-(4, 'Camila Rodrigues', 'Educação'),
-(5, 'Rafael Mendes', 'Inteligência Artificial'),
-(6, 'Luciana Ferreira', 'Astronomia'),
-(7, 'Gustavo Pereira', 'Tecnologia');
+(4, 'Camila Rodrigues',  'Educação'),
+(5, 'Rafael Mendes',     'Inteligência Artificial'),
+(6, 'Luciana Ferreira',  'Astronomia'),
+(7, 'Gustavo Pereira',   'Tecnologia');
+SELECT * FROM orientador;
 
-/* Adicionando a chave estrangeira do Orientador na tabela Atividade */
-ALTER TABLE atividade ADD id_orientador INT UNSIGNED NULL;
-ALTER TABLE atividade ADD CONSTRAINT fk_atividade_orientador 
-    FOREIGN KEY (id_orientador) REFERENCES orientador (id_orientador);
+-- CORREÇÃO: a tabela atividade não tinha a coluna id_orientador, então os UPDATEs
+-- abaixo davam erro. Coluna e chave estrangeira criadas aqui.
+ALTER TABLE atividade
+    ADD COLUMN id_orientador INT UNSIGNED NULL,
+    ADD INDEX idx_atividade_orientador (id_orientador),
+    ADD CONSTRAINT fk_atividade_orientador
+        FOREIGN KEY (id_orientador) REFERENCES orientador (id_orientador);
 
-/* Atualização das Atividades com seus respectivos Orientadores */
-UPDATE atividade SET id_orientador = 5 WHERE id_atividade = 1; -- Rafael Mendes -> Coleta de Dados
-UPDATE atividade SET id_orientador = 2 WHERE id_atividade = 2; -- Juliana Martins -> Experimento 1
-UPDATE atividade SET id_orientador = 7 WHERE id_atividade = 3; -- Gustavo Pereira -> Teste de Reações
-UPDATE atividade SET id_orientador = 1 WHERE id_atividade = 4; -- Ricardo Almeida -> Aula Prática
-UPDATE atividade SET id_orientador = 4 WHERE id_atividade = 5; -- Camila Rodrigues -> Montagem de Ambiente
-
--- atividades dia 08/09/2026
--- A) Consulta de atividades com data de término a partir de uma data específica:
--- Esta consulta retorna todas as atividades que têm uma data de término posterior a 20 de abril de 2025.
-
-select * from atividade where data_fim > '2025-04-20';
-
--- B) Retorne a unidade e quantidade em estoque de todos os materiais na tabela
--- Material, cuja quantidade seja superior a 100.
-
-select unidade, quantidade from material
-where quantidade > 100;
-
--- C) Consulta para exibir o nome de professores e área de atuação na tabela
--- Professor, que não são da área de atuação Física.
-
-select nome_professor, especialidade from professor where especialidade <> 'Física';
-
--- D) Localizar todos os projetos que estão atualmente em andamento. Um projeto é
--- considerado "em andamento" se a data atual estiver entre sua data de início e de fim.
-
-select * from projeto where current_date() > data_inicio and current_date() < data_fim;
-
--- E) Listar o nome e a área de atuação de todos os professores que são da área de
--- 'Biologia' OU 'Química’
-
-select * from professor where especialidade = 'Biologia' or especialidade = 'Quimica';
-
--- F) Consultar o nome e o tipo de todos os recursos que NÃO são do tipo 'Equipamento’.
-
-select nome, tipo from recurso where tipo <> "Equipamento";
-
--- G) O projeto 'Computação Móvel' precisa de mais tempo e sua data final
--- será estendida para 30 de novembro de 2025.
-
-update projeto set data_fim = "2025-11-30" where id_projeto = 5;
-
--- H) O nome da atividade com id_atividade igual a 2, "Experimento 1", é muito genérico.
--- É necessário atualizá-lo para "Experimento de Refração da Luz" para refletir melhor o seu propósito
+UPDATE atividade SET id_orientador = 5 WHERE id_atividade = 1;
+UPDATE atividade SET id_orientador = 2 WHERE id_atividade = 2;
+UPDATE atividade SET id_orientador = 7 WHERE id_atividade = 3;
+UPDATE atividade SET id_orientador = 1 WHERE id_atividade = 4;
+UPDATE atividade SET id_orientador = 4 WHERE id_atividade = 5;
+SELECT * FROM atividade;
 
 
-update atividade set nome_atividade = "Experimento de Refração de Luz" where id_atividade = 2;
+/* ============================================================
+   5. CONSULTAS (A a K)
+   ============================================================ */
 
--- I) Listar os orientadores da área de Tecnologia
+/* A) Atividades com data de término posterior a 20 de abril de 2025.
+   CORREÇÃO: a data estava '09-02-2000' (formato inválido e valor diferente
+   do enunciado). O formato do MySQL é AAAA-MM-DD. */
+SELECT * FROM atividade
+WHERE data_fim > '2025-04-20';
 
-select * from orientador where area = 'Tecnologia';
+/* B) Unidade e quantidade em estoque dos materiais com quantidade superior a 100. */
+SELECT unidade, quantidade
+FROM material
+WHERE quantidade > 100;
 
--- J) Listar orientadores cujo ID seja maior que 3
+/* C) Nome e especialidade dos professores que NÃO são da área de Física.
+   CORREÇÃO: 'fisica' -> 'Física' (com acento, igual ao dado gravado). */
+SELECT nome_professor, especialidade
+FROM professor
+WHERE especialidade <> 'Física';
 
-select * from orientador where id_orientador > 3;
+/* D) Projetos em andamento (data atual entre data de início e de fim).
+   CORREÇÃO: 'Projeto' -> 'projeto' (nomes de tabela diferenciam maiúsculas
+   de minúsculas em servidores Linux). */
+SELECT * FROM projeto
+WHERE CURRENT_DATE BETWEEN data_inicio AND data_fim;
 
--- K) Listar orientadores que não são da área de Educação
+/* E) Nome e área de atuação dos professores de 'Biologia' OU 'Química'.
+   CORREÇÃO: as colunas se chamam nome_professor e especialidade (após o
+   ALTER) e a condição usava <> com OR, que é sempre verdadeira. */
+SELECT nome_professor, especialidade
+FROM professor
+WHERE especialidade = 'Biologia' OR especialidade = 'Química';
 
-select * from orientador where area <> "Educacao";
+/* F) Nome e tipo dos recursos que NÃO são do tipo 'Equipamento'.
+   CORREÇÃO: comparava com a coluna "material" (sem aspas) e o valor
+   estava invertido em relação ao enunciado. */
+SELECT nome, tipo
+FROM recurso
+WHERE tipo <> 'equipamento';
+
+/* G) O projeto 'Computação Móvel' tem a data final estendida para 30/11/2025.
+   CORREÇÃO: o UPDATE atuava na tabela atividade, buscava por nome_atividade
+   e usava a data '2026-12-10'. Deve atualizar a tabela projeto pelo título. */
+UPDATE projeto
+SET data_fim = '2025-11-30'
+WHERE titulo = 'Computação Móvel';
+
+/* H) Renomear a atividade 2 para "Experimento de Refração da Luz". */
+UPDATE atividade
+SET nome_atividade = 'Experimento de Refração da Luz'
+WHERE id_atividade = 2;
+
+/* I) Orientadores da área de Tecnologia.
+   CORREÇÃO: a tabela é "orientador" (não "orientadores") e a coluna é
+   atividade_orientador (não area_atuacao). */
+SELECT * FROM orientador
+WHERE atividade_orientador = 'Tecnologia';
+
+/* J) Orientadores cujo ID seja maior que 3. */
+SELECT * FROM orientador
+WHERE id_orientador > 3;
+
+/* K) Orientadores que não são da área de Educação. */
+SELECT * FROM orientador
+WHERE atividade_orientador <> 'Educação';
+
+
+/* ============================================================
+   6. EXERCÍCIOS
+   ============================================================ */
+
+-- 1. Quantidade total de atividades cadastradas.
+SELECT COUNT(*) AS total_atividades
+FROM atividade;
+
+-- 2. Média de duração (data_fim - data_inicio) das atividades, em dias.
+SELECT AVG(DATEDIFF(data_fim, data_inicio)) AS media_duracao_dias
+FROM atividade;
+
+-- 3. Maior data de término das atividades cadastradas.
+SELECT MAX(data_fim) AS maior_data_termino
+FROM atividade;
+
+-- 4. Soma total de dias de todas as atividades.
+SELECT SUM(DATEDIFF(data_fim, data_inicio)) AS total_dias
+FROM atividade;
+
+-- 5. Áreas de atuação distintas dos professores.
+SELECT DISTINCT especialidade
+FROM professor;
+
+-- 6. Alunos e curso do curso Biologia, em ordem alfabética crescente.
+SELECT nome_aluno, curso
+FROM aluno_voluntario
+WHERE curso = 'Biologia'
+ORDER BY nome_aluno ASC;
+
+-- 7. Projetos, pulando os 2 primeiros registros.
+--    (No MySQL o OFFSET exige o LIMIT; usa-se um valor bem grande.)
+SELECT *
+FROM projeto
+ORDER BY id_projeto
+LIMIT 18446744073709551615 OFFSET 2;
+
+-- 8. Cursos e quantidade de alunos voluntários de cada curso.
+SELECT curso, COUNT(*) AS qtd_alunos
+FROM aluno_voluntario
+GROUP BY curso;
+
+-- 9. Cursos com quantidade de alunos voluntários maior ou igual a 1.
+SELECT curso, COUNT(*) AS qtd_alunos
+FROM aluno_voluntario
+GROUP BY curso
+HAVING COUNT(*) >= 1;
+
+-- 10. Alunos cuja identificação esteja entre 5 e 10.
+SELECT *
+FROM aluno_voluntario
+WHERE id_aluno BETWEEN 5 AND 10;
+
+-- 11. Professores cujo nome termina com 's'.
+SELECT *
+FROM professor
+WHERE nome_professor LIKE '%s';
+
+-- 12. Visão vw_projetos_andamento: projetos atualmente em andamento.
+CREATE OR REPLACE VIEW vw_projetos_andamento AS
+SELECT titulo, data_inicio, data_fim
+FROM projeto
+WHERE CURRENT_DATE BETWEEN data_inicio AND data_fim;
+
+SELECT * FROM vw_projetos_andamento;
+
+-- 13. Visão vw_alunos_curso: total de alunos voluntários agrupados por curso.
+CREATE OR REPLACE VIEW vw_alunos_curso AS
+SELECT curso, COUNT(*) AS total_alunos
+FROM aluno_voluntario
+GROUP BY curso;
+
+SELECT * FROM vw_alunos_curso;
+
+
+/* ============================================================
+   7. EXERCÍCIOS EXTRA-CLASSE
+   ============================================================ */
+
+-- 1. Todos os nomes distintos de professores cadastrados.
+SELECT DISTINCT nome_professor
+FROM professor;
+
+-- 2. Cursos distintos dos alunos voluntários.
+SELECT DISTINCT curso
+FROM aluno_voluntario;
+
+-- 3. Tipos distintos de recurso cadastrados.
+SELECT DISTINCT tipo
+FROM recurso;
+
+-- 4. Alunos em ordem decrescente do nome.
+SELECT *
+FROM aluno_voluntario
+ORDER BY nome_aluno DESC;
+
+-- 5. Alunos ordenados primeiro pelo curso e depois pelo nome.
+SELECT *
+FROM aluno_voluntario
+ORDER BY curso, nome_aluno;
+
+-- 6. Professores em ordem de área de atuação.
+SELECT *
+FROM professor
+ORDER BY especialidade;
+
+-- 7. Os 2 primeiros projetos cadastrados.
+SELECT *
+FROM projeto
+ORDER BY id_projeto
+LIMIT 2;
+
+-- 8. Os 3 primeiros títulos de projetos.
+SELECT titulo
+FROM projeto
+ORDER BY id_projeto
+LIMIT 3;
+
+-- 9. Apenas 1 projeto, pulando os 3 primeiros.
+SELECT *
+FROM projeto
+ORDER BY id_projeto
+LIMIT 1 OFFSET 3;
+
+-- 10. Quantos recursos existem de cada tipo.
+SELECT tipo, COUNT(*) AS qtd_recursos
+FROM recurso
+GROUP BY tipo;
+
+-- 11. Quantidade de projetos por professor.
+SELECT p.id_professor, p.nome_professor, COUNT(pr.id_projeto) AS qtd_projetos
+FROM professor p
+LEFT JOIN projeto pr ON pr.id_professor = p.id_professor
+GROUP BY p.id_professor, p.nome_professor;
+
+-- 12. Projetos iniciados entre 2025-01-01 e 2025-12-31.
+SELECT *
+FROM projeto
+WHERE data_inicio BETWEEN '2025-01-01' AND '2025-12-31';
+
+-- 13. Atividades que terminaram entre 2025-01-01 e 2025-06-30.
+SELECT *
+FROM atividade
+WHERE data_fim BETWEEN '2025-01-01' AND '2025-06-30';
+
+-- 14. Professores cujo nome começa com 'A'.
+SELECT *
+FROM professor
+WHERE nome_professor LIKE 'A%';
+
+-- 15. Alunos cujo curso começa com 'Eng'.
+SELECT *
+FROM aluno_voluntario
+WHERE curso LIKE 'Eng%';
+
+-- 16. Visão com os projetos já concluídos (data de término anterior à data atual).
+CREATE OR REPLACE VIEW vw_projetos_concluidos AS
+SELECT id_projeto, titulo, data_inicio, data_fim
+FROM projeto
+WHERE data_fim < CURRENT_DATE;
+
+SELECT * FROM vw_projetos_concluidos;
+
+-- 17. Visão com o nome de cada professor e sua área de atuação.
+CREATE OR REPLACE VIEW vw_professores_area AS
+SELECT nome_professor, especialidade
+FROM professor;
+
+SELECT * FROM vw_professores_area;
+
+-- 18. Visão com todos os recursos cadastrados (nome e tipo).
+CREATE OR REPLACE VIEW vw_recursos_tipos AS
+SELECT nome, tipo
+FROM recurso;
+
+SELECT * FROM vw_recursos_tipos;
+
+-- 19. Professores cujo id esteja entre 2 e 4.
+SELECT *
+FROM professor
+WHERE id_professor BETWEEN 2 AND 4;
+
+-- 20. Professores cujo nome contém 'ana'.
+SELECT *
+FROM professor
+WHERE nome_professor LIKE '%ana%';
